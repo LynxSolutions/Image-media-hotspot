@@ -110,10 +110,16 @@
         let index = this.images.indexOf(this.cropImage);
         this.images[index] = Object.assign(image, { custom_properties: this.cropImage.custom_properties });
       },
-      onHotSpotsPlaced(image) {
-
+      onHotSpotsPlaced(hotSpots) {
+        let index = this.images.indexOf(this.cropImage);
+        const image = this.images.indexOf(this.hotspotImage);
+        this.images[index] = Object.assign(image, {
+          custom_properties: {
+            hotSpots
+          }
+        })
+        console.log(this.images)
       },
-
       add() {
         Array.from(this.$refs.file.files).forEach(file => {
           const blobFile = new Blob([file], { type: file.type });
