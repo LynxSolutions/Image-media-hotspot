@@ -13,6 +13,7 @@ images and order them by drag and drop.
 * [Selecting existing media](#selecting-existing-media)  
 * [Names of uploaded images](#names-of-uploaded-images)  
 * [Image cropping](#image-cropping)
+* [Hotspots](#custom-hotspots)
 * [Custom properties](#custom-properties)
 * [Custom headers](#custom-headers)
 * [Media Field (Video)](#media-field-video)  
@@ -37,7 +38,7 @@ php artisan vendor:publish --tag=nova-media-library
 
 Let's assume you configured your model to use the media library like following:
 ```php
-use Spatie\MediaLibrary\Models\Media;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 public function registerMediaConversions(Media $media = null)
 {
@@ -134,6 +135,8 @@ return [
 Images::make('Image')->enableExistingMedia(),
 ```
 
+**Note**: This feature does not support temporary URLs.
+
 ## Names of uploaded images
 
 The default filename of the new uploaded file is the original filename. You can change this with the help of the function `setFileName`, which takes a callback function as the only param. This callback function has three params: `$originalFilename` (the original filename like `Fotolia 4711.jpg`), `$extension` (file extension like `jpg`), `$model` (the current model). Here are just 2 examples of what you can do:
@@ -192,6 +195,20 @@ You can set all configurations like ratio e.g. as following:
 Images::make('Gallery')->croppingConfigs(['ratio' => 4/3]);
 ```
 Available cropping configuration, see https://github.com/timtnleeProject/vuejs-clipper#clipper-basic.
+
+It is possible to enforce cropping on upload, for example to ensure the image has the set aspect ratio:
+```php
+Images::make('Gallery')->mustCrop();
+```
+
+## Custom Hotspots
+To enable hotspot placing on an image set the following custom property:
+```php
+Images::make('Images')
+    ->customPropertiesFields([
+        HotSpotsField::make('x-hotspots')
+    ]);
+```
 
 ## Custom properties
 
@@ -266,6 +283,21 @@ class YourModel extends Model implements HasMedia
     }
 }
 ```
+
+## Temporary Urls
+
+If you are using Amazon S3 to store your media, you will need to use the `temporary` function on your field to generate
+a temporary signed URL. This function expects a valid Carbon instance that will specify when the URL should expire.
+
+```
+Images::make('Image 1', 'img1')
+    ->temporary(now()->addMinutes(5))
+
+Files::make('Multiple files', 'multiple_files')
+    ->temporary(now()->addMinutes(10),
+```
+
+**Note**: This feature does not work with the existing media feature. 
 
 # Credits
 
