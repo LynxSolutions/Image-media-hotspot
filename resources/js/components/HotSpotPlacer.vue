@@ -2,6 +2,11 @@
   <transition name="fade">
     <modal v-if="image" @modal-close="$emit('close')">
       <card class="text-center m-2 bg-white rounded-lg shadow-lg overflow-hidden">
+        <h5 class="pt-2">{{ __('Click on the image to set a hotspot') }}</h5>
+        <h5>{{ __('Click on a hotspot to remove it') }}</h5>
+        <h5>{{ __('Click and drag a hotspot to move it') }}</h5>
+
+        <br>
         <div class="p-4">
           <div
             class="image-hotspots"
@@ -13,7 +18,7 @@
               href="#"
               class="hotspot-point background-primary"
               v-for="(hotspot, index) in hotspotItems"
-              :style="{ top: hotspot.position.top, left: hotspot.position.left }"
+              :style="{ top: hotspot.top, left: hotspot.left }"
               @click="() => removeHotSpot(hotspot)"
               draggable="true"
               @dragstart="(e) => dragStart(e, index)"
@@ -45,17 +50,7 @@ export default {
   },
   data() {
     return {
-      hotspots: [
-        {
-          position: {top: '20%', left: '38%'}
-        },
-        {
-          position: {top: '85%', left: '75%'}
-        },
-        {
-          position: {top: '85%', left: '48%'}
-        }
-      ]
+      hotspots: []
     }
   },
   computed: {
@@ -69,7 +64,7 @@ export default {
     },
     imageUrl() {
       return this.image ? this.image.__media_urls__.__original__ : null;
-    },
+    }
   },
   watch: {
     image() {
@@ -78,20 +73,18 @@ export default {
   },
   methods: {
     reset() {
+      this.parseSavedHotspots()
     },
     onImageClick(e) {
       const [relativeX, relativeY] = clickEventToRelativeUnits(e, 10)
       this.hotspots.push({
-        id: this.hotspots.length + 1,
-        position: {
-          top: `${relativeY}%`,
-          left: `${relativeX}%`
-        }
+        top: `${relativeY}%`,
+        left: `${relativeX}%`
       })
     },
     removeHotSpot(clickedHotspot) {
       this.hotspots = this.hotspots
-        .filter((h) => h !== clickedHotspot)
+        .filter((h) => h !== clickedHotspot);
     },
     allowDrop(event) {
       event.preventDefault();
@@ -104,10 +97,8 @@ export default {
         const hotspotToMove = this.hotspots[hotspotIndex]
         if (hotspotToMove) {
           const [relativeX, relativeY] = clickEventToRelativeUnits(event, 10)
-          hotspotToMove.position = {
-            top: `${relativeY}%`,
-            left: `${relativeX}%`
-          }
+          hotspotToMove.top = `${relativeY}%`,
+          hotspotToMove.left = `${relativeX}%`
         }
       }
     },
@@ -115,8 +106,28 @@ export default {
       event.dataTransfer.setData("hotspotId", hotspotId);
     },
     onSave() {
-      this.$emit('hotspots-completed', this.hotspots);
+      const requestObjectArray = this.hotspots.reduce((a, h, i) => {
+        a[i] = {
+          id: i + 1,
+          top: h.top,
+          left: h.left
+        };
+        return a;
+      }, {})
+      this.$emit('hotspots-completed', requestObjectArray);
       this.$emit('close');
+    },
+    parseSavedHotspots() {
+      if (this.image && this.image.custom_properties) {
+        const hotspots = this.image.custom_properties["x-hotspots"];
+        if (Array.isArray(hotspots)) {
+          this.hotspots = hotspots.filter((h) => {
+            return h.top && h.left
+          })
+        }
+      } else {
+        this.hotspots = [];
+      }
     }
   },
 };

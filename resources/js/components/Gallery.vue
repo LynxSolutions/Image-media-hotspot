@@ -122,15 +122,13 @@
         let index = this.images.indexOf(this.cropImage);
         this.images[index] = Object.assign(image, { custom_properties: this.cropImage.custom_properties });
       },
-      onHotSpotsPlaced(hotSpots) {
-        let index = this.images.indexOf(this.cropImage);
-        const image = this.images.indexOf(this.hotspotImage);
-        this.images[index] = Object.assign(image, {
+      onHotSpotsPlaced(hotspots) {
+        let index = this.images.indexOf(this.hotspotImage);
+        this.images[index] = Object.assign(this.hotspotImage, {
           custom_properties: {
-            hotSpots
+            'x-hotspots': hotspots
           }
         })
-        console.log(this.images)
       },
       add() {
         Array.from(this.$refs.file.files).forEach(file => {
