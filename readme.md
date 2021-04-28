@@ -13,6 +13,7 @@ images and order them by drag and drop.
 * [Selecting existing media](#selecting-existing-media)  
 * [Names of uploaded images](#names-of-uploaded-images)  
 * [Image cropping](#image-cropping)
+* [Hotspots](#custom-hotspots)
 * [Custom properties](#custom-properties)
 * [Custom headers](#custom-headers)
 * [Media Field (Video)](#media-field-video)  
@@ -198,6 +199,15 @@ Available cropping configuration, see https://github.com/timtnleeProject/vuejs-c
 It is possible to enforce cropping on upload, for example to ensure the image has the set aspect ratio:
 ```php
 Images::make('Gallery')->mustCrop();
+```
+
+## Custom Hotspots
+To enable hotspot placing on an image set the following custom property:
+```php
+Images::make('Images')
+    ->customPropertiesFields([
+        HotSpotsField::make('x-hotspots')
+    ]);
 ```
 
 ## Custom properties

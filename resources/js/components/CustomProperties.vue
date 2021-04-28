@@ -3,6 +3,7 @@
         <transition name="fade">
             <CustomPropertiesModal
                 :fields="filledFields"
+                :image="image"
                 @close="handleClose"
                 @update="handleUpdate"
             />
