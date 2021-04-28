@@ -80,7 +80,7 @@
 
           objectToFormData({
             [`__media-custom-properties__[${field}][${index}]`]: this.getImageCustomProperties(file)
-          }, {}, formData);
+          }, { indices: true }, formData);
         });
       },
 
