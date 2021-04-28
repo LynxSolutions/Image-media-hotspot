@@ -10,4 +10,5 @@ class HotSpotsField extends Field
      * @var string
      */
     public $attribute = 'x-hotspots';
+    public $component = 'advanced-media-hotspot';
 }

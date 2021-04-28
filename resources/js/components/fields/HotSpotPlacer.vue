@@ -1,56 +1,46 @@
 <template>
-  <transition name="fade">
-    <modal v-if="image" @modal-close="$emit('close')">
-      <card class="text-center m-2 bg-white rounded-lg shadow-lg overflow-hidden">
-        <h5 class="pt-2">{{ __('Click on the image to set a hotspot') }}</h5>
-        <h5>{{ __('Click on a hotspot to remove it') }}</h5>
-        <h5>{{ __('Click and drag a hotspot to move it') }}</h5>
+  <div class="text-center">
+    <h5 class="pt-2">{{ __('Click on the image to set a hotspot') }}</h5>
+    <h5>{{ __('Click on a hotspot to remove it') }}</h5>
+    <h5>{{ __('Click and drag a hotspot to move it') }}</h5>
 
-        <br>
-        <div class="p-4">
-          <div
-            class="image-hotspots"
-            @drop="dropHotspot"
-            @dragover="allowDrop"
-          >
-            <img :src="imageUrl" @click="onImageClick"/>
-            <a
-              href="#"
-              class="hotspot-point background-primary"
-              v-for="(hotspot, index) in hotspotItems"
-              :style="{ top: hotspot.top, left: hotspot.left }"
-              @click="() => removeHotSpot(hotspot)"
-              draggable="true"
-              @dragstart="(e) => dragStart(e, index)"
-              :key="index"
-            >
-                <span>{{index + 1}}</span>
-            </a>
-          </div>
-        </div>
-
-        <div class="bg-30 px-6 py-3 footer rounded-lg">
-          <button type="button" class="btn btn-link text-80 font-normal h-9 px-3" @click="$emit('close')">
-            {{ __('Cancel') }}
-          </button>
-          <button type="button" class="btn btn-default btn-primary" @click="onSave">{{ __('Update') }}</button>
-        </div>
-      </card>
-    </modal>
-  </transition>
+    <br>
+    <div class="p-4">
+      <div
+        class="image-hotspots"
+        @drop="dropHotspot"
+        @dragover="allowDrop"
+      >
+        <img :src="imageUrl" @click="onImageClick"/>
+        <a
+          href="#"
+          class="hotspot-point background-primary"
+          v-for="(hotspot, index) in hotspotItems"
+          :style="{ top: hotspot.top, left: hotspot.left }"
+          @click="() => removeHotSpot(hotspot)"
+          draggable="true"
+          @dragstart="(e) => dragStart(e, index)"
+          :key="index"
+        >
+          <span>{{ index + 1 }}</span>
+        </a>
+      </div>
+    </div>
+  </div>
 </template>
 
 
 <script>
-import clickEventToRelativeUnits from '../clickEventToRelativeUnits';
+import clickEventToRelativeUnits from '../../clickEventToRelativeUnits';
+import { FormField } from 'laravel-nova'
+
 
 export default {
-  props: {
-    image: Object,
-  },
+  mixins: [FormField],
+  props: ['resourceName', 'resourceId', 'field', 'image'],
   data() {
     return {
-      hotspots: []
+      hotspots: this.parseSavedHotspots()
     }
   },
   computed: {
@@ -67,14 +57,11 @@ export default {
     }
   },
   watch: {
-    image() {
-      this.reset();
+    field() {
+      this.parseSavedHotspots();
     },
   },
   methods: {
-    reset() {
-      this.parseSavedHotspots()
-    },
     onImageClick(e) {
       const [relativeX, relativeY] = clickEventToRelativeUnits(e, 10)
       this.hotspots.push({
@@ -82,9 +69,18 @@ export default {
         left: `${relativeX}%`
       })
     },
+    /**
+     * Update the field's internal value
+     */
+    handleChange() {
+      if (this.field) {
+        Nova.$emit(this.field.attribute + '-change', this.hotspots);
+      }
+    },
     removeHotSpot(clickedHotspot) {
       this.hotspots = this.hotspots
         .filter((h) => h !== clickedHotspot);
+      this.handleChange();
     },
     allowDrop(event) {
       event.preventDefault();
@@ -105,29 +101,28 @@ export default {
     dragStart(event, hotspotId) {
       event.dataTransfer.setData("hotspotId", hotspotId);
     },
-    onSave() {
-      const requestObjectArray = this.hotspots.reduce((a, h, i) => {
-        a[i] = {
-          id: i + 1,
-          top: h.top,
-          left: h.left
-        };
-        return a;
-      }, {})
-      this.$emit('hotspots-completed', requestObjectArray);
-      this.$emit('close');
+    /**
+     * Fill the given FormData object with the field's internal value.
+     */
+    fill(formData) {
+      const field = this.field.attribute;
+      this.image.['custom_properties'][field] = [];
+
+      this.hotspots.forEach((hotspot, index) => {
+        formData.append(`[${field}][${index}][top]`, hotspot.top)
+        formData.append(`[${field}][${index}][left]`, hotspot.left)
+      });
     },
     parseSavedHotspots() {
-      if (this.image && this.image.custom_properties) {
-        const hotspots = this.image.custom_properties["x-hotspots"];
+      if (this.field.value) {
+        const hotspots = this.field.value;
         if (Array.isArray(hotspots)) {
-          this.hotspots = hotspots.filter((h) => {
-            return h.top && h.left
+          return hotspots.filter((h) => {
+            return h && h.top && h.left
           })
         }
-      } else {
-        this.hotspots = [];
       }
+      return [];
     }
   },
 };
@@ -304,8 +299,6 @@ $spot-color: #de446e;
     transform: scale(2);
   }
 }
-
-
 
 
 </style>

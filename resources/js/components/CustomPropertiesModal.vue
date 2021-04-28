@@ -16,7 +16,7 @@
             >
 
                 <div v-for="field in fields" :key="field.attribute" class="action">
-                    <component :is="'form-' + field.component" :field="field"/>
+                    <component :is="'form-' + field.component" :field="field" :image="image"/>
                 </div>
 
                 <div class="bg-30 px-6 py-3 flex">
@@ -39,6 +39,7 @@
 <script>
   export default {
     props: {
+        image: Object,
         fields: {
             type: Array,
             required: true,

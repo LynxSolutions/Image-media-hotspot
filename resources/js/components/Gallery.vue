@@ -1,7 +1,6 @@
 <template>
   <div class="gallery" :class="{editable}" @mouseover="mouseOver = true" @mouseout="mouseOver = false">
     <cropper v-if="field.type === 'media' && editable" :image="cropImage" :must-crop="field.mustCrop" @close="onCloseCroppedImage" @crop-completed="onCroppedImage" :configs="field.croppingConfigs"/>
-    <hot-spot-placer v-if="field.type === 'media' && editable" :image="hotspotImage" @close="hotspotImage = null" @hotspots-completed="onHotSpotsPlaced"/>
 
     <component :is="draggable ? 'draggable' : 'div'" v-if="images.length > 0" v-model="images"
                class="gallery-list clearfix">
@@ -11,7 +10,6 @@
                     :is-custom-properties-editable="customProperties && customPropertiesFields.length > 0"
                     @edit-custom-properties="customPropertiesImageIndex = index"
                     @crop-start="cropImageQueue.push($event)"
-                    @hotspot-start="hotspotImage = $event"
                     />
 
       <CustomProperties
@@ -46,7 +44,7 @@
   import Cropper from './Cropper';
   import CustomProperties from './CustomProperties';
   import Draggable from 'vuedraggable';
-  import HotSpotPlacer from './HotSpotPlacer';
+  import HotSpotPlacer from './fields/HotSpotPlacer';
 
   export default {
     components: {
@@ -77,7 +75,6 @@
         images: this.value,
         customPropertiesImageIndex: null,
         singleComponent: this.field.type === 'media' ? SingleMedia : SingleFile,
-        hotspotImage: null,
       };
     },
     computed: {
@@ -121,14 +118,6 @@
       onCroppedImage(image) {
         let index = this.images.indexOf(this.cropImage);
         this.images[index] = Object.assign(image, { custom_properties: this.cropImage.custom_properties });
-      },
-      onHotSpotsPlaced(hotspots) {
-        let index = this.images.indexOf(this.hotspotImage);
-        this.images[index] = Object.assign(this.hotspotImage, {
-          custom_properties: {
-            'x-hotspots': hotspots
-          }
-        })
       },
       add() {
         Array.from(this.$refs.file.files).forEach(file => {

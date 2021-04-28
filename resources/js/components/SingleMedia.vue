@@ -16,9 +16,6 @@
       <a v-if="croppable" class="icon crop" href="#" @click.prevent="$emit('crop-start', image)">
         <scissors-icon brand="var(--info)" view-box="0 0 20 20" width="16" height="16"/>
       </a>
-      <a v-if="hotspotAssignable" class="icon location" href="#" @click.prevent="$emit('hotspot-start', image)">
-        <location-icon brand="var(--info)" view-box="0 0 20 20" width="16" height="16"/>
-      </a>
     </div>
     <img :src="src" :alt="image.name" ref="image" class="gallery-image">
     <div v-if="field.showStatistics" class="statistics">
@@ -34,13 +31,11 @@
 
 <script>
   import ScissorsIcon from './icons/Scissors';
-  import LocationIcon from './icons/Location';
   import GalleryItem from './GalleryItem';
 
   export default {
     components: {
       ScissorsIcon,
-      LocationIcon,
       GalleryItem,
     },
     props: ['image', 'field', 'removable', 'editable', 'isCustomPropertiesEditable'],
