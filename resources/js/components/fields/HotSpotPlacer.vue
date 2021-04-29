@@ -106,7 +106,9 @@ export default {
      */
     fill(formData) {
       const field = this.field.attribute;
-      this.image.['custom_properties'][field] = [];
+      if (this.image['custom_properties']) {
+        this.image.['custom_properties'][field] = [];
+      }
 
       this.hotspots.forEach((hotspot, index) => {
         formData.append(`[${field}][${index}][top]`, hotspot.top)
